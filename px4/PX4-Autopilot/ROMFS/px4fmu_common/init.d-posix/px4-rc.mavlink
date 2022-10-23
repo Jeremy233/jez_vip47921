@@ -1,0 +1,48 @@
+#!/bin/sh
+# shellcheck disable=SC2154
+
+udp_offboard_port_local=$((14580+px4_instance))
+udp_offboard_port_remote=$((14540+px4_instance))
+[ $px4_instance -gt 9 ] && udp_offboard_port_remote=14549 # use the same ports for more than 10 instances to avoid port overlaps
+udp_onboard_payload_port_local=$((14280+px4_instance))
+udp_onboard_payload_port_remote=$((14030+px4_instance))
+udp_onboard_gimbal_port_local=$((13030+px4_instance))
+udp_onboard_gimbal_port_remote=$((13280+px4_instance))
+udp_gcs_port_local=$((18570+px4_instance))
+
+# GCS link
+# Check if PX4_GCS_HOSTNAME environment variable is empty
+# If empty use localhost for GCS
+if [ -z "${PX4_GCS_HOSTNAME}" ]; then
+  echo "PX4 GCS HOST: localhost : $udp_gcs_port_local"
+  mavlink start -x -u $udp_gcs_port_local -r 4000000 -f
+else
+  echo "PX4 GCS HOST: $PX4_GCS_HOSTNAME : $udp_gcs_port_local"
+  mavlink start -t ${PX4_GCS_HOSTNAME} -x -u $udp_gcs_port_local -r 4000000 -f
+fi
+mavlink stream -r 50 -s POSITION_TARGET_LOCAL_NED -u $udp_gcs_port_local
+mavlink stream -r 50 -s LOCAL_POSITION_NED -u $udp_gcs_port_local
+mavlink stream -r 50 -s GLOBAL_POSITION_INT -u $udp_gcs_port_local
+mavlink stream -r 50 -s ATTITUDE -u $udp_gcs_port_local
+mavlink stream -r 50 -s ATTITUDE_QUATERNION -u $udp_gcs_port_local
+mavlink stream -r 50 -s ATTITUDE_TARGET -u $udp_gcs_port_local
+mavlink stream -r 50 -s SERVO_OUTPUT_RAW_0 -u $udp_gcs_port_local
+mavlink stream -r 20 -s RC_CHANNELS -u $udp_gcs_port_local
+mavlink stream -r 10 -s OPTICAL_FLOW_RAD -u $udp_gcs_port_local
+
+# API/Onboard link
+# Check if PX4_OFFBOARD_HOSTNAME environment variable is empty
+# If empty use localhost for link
+if [ -z "${PX4_OFFBOARD_HOSTNAME}" ]; then
+  echo "PX4 OFFBOARD HOST: localhost : $offboard_udp_port"
+  mavlink start -x -u $udp_offboard_port_local -r 4000000 -f -m onboard -o $udp_offboard_port_remote
+else
+  echo "PX4 OFFBOARD HOST: $PX4_OFFBOARD_HOSTNAME : $udp_offboard_port_local:$udp_offboard_port_remote"
+  mavlink start -x -u $udp_offboard_port_local -r 4000000 -f -m onboard -o $udp_offboard_port_remote
+fi
+
+# Onboard link to camera
+mavlink start -x -u $udp_onboard_payload_port_local -r 4000 -f -m onboard -o $udp_onboard_payload_port_remote
+
+# Onboard link to gimbal
+mavlink start -x -u $udp_onboard_gimbal_port_local -r 400000 -m gimbal -o $udp_onboard_gimbal_port_remote
