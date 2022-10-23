@@ -1,0 +1,1 @@
+px4_msgs.msg.SensorCombined(timestamp=12818024676, gyro_rad=array([0., 0., 0.], dtype=float32), gyro_integral_dt=4000, accelerometer_timestamp_relative=0, accelerometer_m_s2=array([ 0.0000000e+00,  1.7099121e-07, -9.7970753e+00], dtype=float32), accelerometer_integral_dt=4000, accelerometer_clipping=0)

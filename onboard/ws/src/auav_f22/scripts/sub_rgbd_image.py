@@ -3,36 +3,31 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 import time
+import os.path
 
 class RGBDImageNode(Node):
 
 	def __init__(self):
 		super().__init__("RGBDImage_subscriber")
-		self.RGBDImage_subscriber = self.create_subscription(RGBDImage, "/rgbd_camera/depth_image", self.sensor_callback, 10)
-		self.write_check = True
-		self.file_count = 0
+		self.RGBDImage_subscriber = self.create_subscription
+		(Image, "/rgbd_camera/depth_image", self.sensor_callback, 10)
 		self.rgbd_image = None
 
-	def write_file(self):
-		if self.write_check is True:
-			file_name = "./output/rgbd_image" + str(self.file_count) + ".txt"
-			f = open(file_name, "w")
-			for i in self.rgbd_image:
-				f.write(str(i) + '\n')
-			f.close
-
-	def sensor_callback(self, msg:RGBDImage):
+	def sensor_callback(self, msg:Image):
 		self.rgbd_image = msg.data
-		# write data to txt file, stop when wrote 100 txts
-		while self.file_count > 0:
-			if self.file_count > 100:
-				self.file_count = -1
-			else:
-				self.write_file()
-				time.sleep(0.1)
-			self.file_count += 1
-			
-		self.get_logger().info("rgbd image wrote") # subscribe from the node
+		i = 0
+		while i < 10:
+				check_file = "output/rgbd_image" + str(i) + ".txt"
+				file_exist = os.path.exists(check_file)
+				if file_exist is False:
+					file_write = "output/rgbd_image" + str(i) + ".txt"
+					f_new = open(file_write, "w+")
+					f_new.write(str(self.rgbd_image))
+					f_new.close()
+					i += 1
+				else:
+					i += 1
+		self.get_logger().info("writing rgbd_image files")
 
 
 
