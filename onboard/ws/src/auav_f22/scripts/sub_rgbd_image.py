@@ -9,8 +9,8 @@ class RGBDImageNode(Node):
 
 	def __init__(self):
 		super().__init__("RGBDImage_subscriber")
-		self.RGBDImage_subscriber = self.create_subscription
-		(Image, "/rgbd_camera/depth_image", self.sensor_callback, 10)
+		self.RGBDImage_subscriber = self.create_subscription(Image, 
+		"/rgbd_camera/depth_image", self.sensor_callback, 10)
 		self.rgbd_image = None
 
 	def sensor_callback(self, msg:Image):
